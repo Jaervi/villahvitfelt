@@ -20,7 +20,7 @@ services:
     container_name: ${ENV_PREFIX}-app
     restart: always
     environment:
-      DATABASE_URL: postgres://node:node@db:5432/${DB_NAME:-villahvitfelt}
+      DATABASE_URL: postgres://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-villahvitfelt}
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
       BETTER_AUTH_URL: ${BETTER_AUTH_URL}
       ENV_PREFIX: ${ENV_PREFIX}
@@ -33,4 +33,4 @@ services:
 
 networks:
   default:
-    name: ${ENV_PREFIX}-network
+    driver: bridge

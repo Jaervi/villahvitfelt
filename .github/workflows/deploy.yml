@@ -35,6 +35,15 @@ jobs:
             type=ref,event=branch
             type=sha
 
+      - name: Determine Auth URL
+        id: auth-url
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "URL=${{ secrets.PROD_AUTH_URL }}" >> $GITHUB_ENV
+          else
+            echo "URL=${{ secrets.STAGING_AUTH_URL }}" >> $GITHUB_ENV
+          fi
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -42,6 +51,8 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            NEXT_PUBLIC_BETTER_AUTH_URL=${{ env.URL }}
 
   deploy:
     needs: build-and-push
@@ -79,9 +90,11 @@ jobs:
             if [ "${{ github.ref }}" = "refs/heads/main" ]; then
               export ENV_FILE=".env.prod"
               export IMAGE_TAG="main"
+              export COMPOSE_PROJECT_NAME="villahvitfelt-prod"
             else
               export ENV_FILE=".env.staging"
               export IMAGE_TAG="staging"
+              export COMPOSE_PROJECT_NAME="villahvitfelt-staging"
             fi
             
             export FULL_IMAGE_NAME="ghcr.io/$REPO_LOWER:$IMAGE_TAG"
@@ -89,9 +102,10 @@ jobs:
             # Log in to GHCR
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             
-            # Pull and Restart using the injected image name
-            DOCKER_IMAGE=$FULL_IMAGE_NAME docker compose --env-file $ENV_FILE pull
-            DOCKER_IMAGE=$FULL_IMAGE_NAME docker compose --env-file $ENV_FILE up -d --remove-orphans
+            # Pull, Migrate and Restart using the injected image name
+            DOCKER_IMAGE=$FULL_IMAGE_NAME docker compose -p $COMPOSE_PROJECT_NAME --env-file $ENV_FILE pull
+            DOCKER_IMAGE=$FULL_IMAGE_NAME docker compose -p $COMPOSE_PROJECT_NAME --env-file $ENV_FILE run --rm app node scripts/migrate.mjs
+            DOCKER_IMAGE=$FULL_IMAGE_NAME docker compose -p $COMPOSE_PROJECT_NAME --env-file $ENV_FILE up -d --remove-orphans
 
   sync-branches:
     needs: deploy
