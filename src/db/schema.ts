@@ -148,8 +148,9 @@ export const maintenanceTask = pgTable("maintenanceTask", {
   id: uuid("id").primaryKey().defaultRandom(),
   title: text("title").notNull(),
   description: text("description"),
-  intervalType: text("intervalType").notNull(), // 'days' | 'person-days'
+  intervalType: text("intervalType").notNull(), // e.g., 'days', 'person-days'
   intervalValue: integer("intervalValue").notNull(),
+  isAutomatic: boolean("isAutomatic").notNull().default(false),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });

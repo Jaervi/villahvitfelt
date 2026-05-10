@@ -23,9 +23,22 @@ export async function getProjects() {
 }
 
 export async function getProjectById(id: string) {
+  const session = await getSession();
+
   try {
     const projects = await db.select().from(project).where(eq(project.id, id)).limit(1);
     if (projects.length === 0) return null;
+
+    // If no session, return only basic public info
+    if (!session) {
+      return {
+        ...projects[0],
+        tasks: [],
+        items: [],
+        media: [],
+        isGuestView: true,
+      };
+    }
 
     const [tasks, items, relatedMedia] = await Promise.all([
       db.select().from(projectTask).where(eq(projectTask.projectId, id)).orderBy(projectTask.createdAt),
@@ -38,6 +51,7 @@ export async function getProjectById(id: string) {
       tasks,
       items,
       media: relatedMedia,
+      isGuestView: false,
     };
   } catch (error) {
     console.error("Failed to fetch project detail:", error);
@@ -139,35 +153,44 @@ export async function createProjectTask(data: {
   title: string;
   assigneeName?: string | null;
 }) {
+  const session = await getSession();
+  if (!session) return { success: false, error: "Kirjaudu sisään lisätäksesi tehtäviä." };
+
   try {
     await db.insert(projectTask).values(data);
     revalidatePath(`/projects/${data.projectId}`);
     return { success: true };
   } catch (error) {
     console.error("Failed to create task:", error);
-    return { success: false };
+    return { success: false, error: "Tehtävän luominen epäonnistui." };
   }
 }
 
 export async function toggleProjectTask(id: string, projectId: string, isCompleted: boolean) {
+  const session = await getSession();
+  if (!session) return { success: false, error: "Kirjaudu sisään kuitataksesi tehtäviä." };
+
   try {
     await db.update(projectTask).set({ isCompleted, updatedAt: new Date() }).where(eq(projectTask.id, id));
     revalidatePath(`/projects/${projectId}`);
     return { success: true };
   } catch (error) {
     console.error("Failed to toggle task:", error);
-    return { success: false };
+    return { success: false, error: "Tilan päivitys epäonnistui." };
   }
 }
 
 export async function deleteProjectTask(id: string, projectId: string) {
+  const session = await getSession();
+  if (!session) return { success: false, error: "Kirjaudu sisään poistaaksesi tehtäviä." };
+
   try {
     await db.delete(projectTask).where(eq(projectTask.id, id));
     revalidatePath(`/projects/${projectId}`);
     return { success: true };
   } catch (error) {
     console.error("Failed to delete task:", error);
-    return { success: false };
+    return { success: false, error: "Poistaminen epäonnistui." };
   }
 }
 
@@ -178,34 +201,43 @@ export async function createProjectItem(data: {
   estimatedCost: number;
   link?: string | null;
 }) {
+  const session = await getSession();
+  if (!session) return { success: false, error: "Kirjaudu sisään lisätäksesi hankintoja." };
+
   try {
     await db.insert(projectItem).values(data);
     revalidatePath(`/projects/${data.projectId}`);
     return { success: true };
   } catch (error) {
     console.error("Failed to create item:", error);
-    return { success: false };
+    return { success: false, error: "Hankinnan luominen epäonnistui." };
   }
 }
 
 export async function toggleProjectItemProcured(id: string, projectId: string, isProcured: boolean) {
+  const session = await getSession();
+  if (!session) return { success: false, error: "Kirjaudu sisään kuitataksesi hankintoja." };
+
   try {
     await db.update(projectItem).set({ isProcured }).where(eq(projectItem.id, id));
     revalidatePath(`/projects/${projectId}`);
     return { success: true };
   } catch (error) {
     console.error("Failed to toggle item procured status:", error);
-    return { success: false };
+    return { success: false, error: "Tilan päivitys epäonnistui." };
   }
 }
 
 export async function deleteProjectItem(id: string, projectId: string) {
+  const session = await getSession();
+  if (!session) return { success: false, error: "Kirjaudu sisään poistaaksesi hankintoja." };
+
   try {
     await db.delete(projectItem).where(eq(projectItem.id, id));
     revalidatePath(`/projects/${projectId}`);
     return { success: true };
   } catch (error) {
     console.error("Failed to delete item:", error);
-    return { success: false };
+    return { success: false, error: "Poistaminen epäonnistui." };
   }
 }

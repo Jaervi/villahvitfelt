@@ -141,10 +141,10 @@ export default function CalendarPage() {
       </Group>
 
       {/* Main Calendar Card */}
-      <Paper p="xl" radius="md" shadow="sm">
+      <Paper p={{ base: "xs", sm: "xl" }} radius="md" shadow="sm" style={{ overflowX: "auto" }}>
         <Center>
           <Calendar
-            size="xl"
+            size={mounted && window.innerWidth < 768 ? 'sm' : 'xl'}
             locale="fi"
             getDayProps={(date) => ({
               selected: dayjs(date).isSame(selectedDate, 'day'),
@@ -320,12 +320,11 @@ export default function CalendarPage() {
               fw={700}
             />
             
-            <Group grow>
+            <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
               <DatePicker
                 type="range"
                 value={dateRange}
                 onChange={setDateRange}
-                minDate={new Date()}
                 fw={700}
               />
               <NumberInput
@@ -337,7 +336,7 @@ export default function CalendarPage() {
                 required
                 fw={700}
               />
-            </Group>
+            </SimpleGrid>
 
             {session && (
               <Checkbox

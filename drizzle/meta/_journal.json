@@ -8,6 +8,13 @@
       "when": 1778441615315,
       "tag": "0000_kind_rawhide_kid",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1778444542007,
+      "tag": "0001_jittery_the_liberteens",
+      "breakpoints": true
     }
   ]
 }

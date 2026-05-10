@@ -110,6 +110,8 @@ jobs:
   sync-branches:
     needs: deploy
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout repository

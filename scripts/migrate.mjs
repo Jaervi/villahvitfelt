@@ -1,7 +1,12 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import pkg from "pg";
+import * as dotenv from "dotenv";
 const { Pool } = pkg;
+
+// Load env files for local development
+dotenv.config({ path: ".env.local" });
+dotenv.config({ path: ".env" });
 
 async function run() {
   if (!process.env.DATABASE_URL) {
