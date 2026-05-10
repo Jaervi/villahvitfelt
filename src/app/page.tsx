@@ -19,7 +19,7 @@ export default function Home() {
             Tervetuloa turvapaikkaasi saaristossa.
           </Title>
           <Text size="xl" fw={600} style={{ maxWidth: 700, color: '#fff', opacity: 0.9 }}>
-            Hengitä raikasta ilmaa ja jätä melu taaksesi. Villa Hvitfelt on suunniteltu hitaisiin aamuihin ja hiljaisiin iltoihin.
+            Hengitä raikasta ilmaa ja jätä melu taaksesi. Villa Hvitfelt tarjoaa sinulle mielenrauhan ja luonnon kauneuden rentoutua.
           </Text>
         </Stack>
       </HeroCarousel>
