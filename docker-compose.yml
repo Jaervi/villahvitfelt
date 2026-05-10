@@ -13,6 +13,7 @@ services:
       - ./volumes/${ENV_PREFIX}/db:/var/lib/postgresql/data
 
   app:
+    image: ${DOCKER_IMAGE:-villahvitfelt-app}
     build:
       context: .
       dockerfile: Dockerfile

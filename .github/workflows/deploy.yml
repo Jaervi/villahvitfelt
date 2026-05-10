@@ -72,19 +72,26 @@ jobs:
           script: |
             cd ~/villahvitfelt
             
-            # Determine env based on branch
+            # Lowercase repo name for Docker registry
+            REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+
+            # Determine env and image tag based on branch
             if [ "${{ github.ref }}" = "refs/heads/main" ]; then
               export ENV_FILE=".env.prod"
+              export IMAGE_TAG="main"
             else
               export ENV_FILE=".env.staging"
+              export IMAGE_TAG="staging"
             fi
+            
+            export FULL_IMAGE_NAME="ghcr.io/$REPO_LOWER:$IMAGE_TAG"
             
             # Log in to GHCR
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             
-            # Pull and Restart
-            docker compose --env-file $ENV_FILE pull
-            docker compose --env-file $ENV_FILE up -d --remove-orphans
+            # Pull and Restart using the injected image name
+            DOCKER_IMAGE=$FULL_IMAGE_NAME docker compose --env-file $ENV_FILE pull
+            DOCKER_IMAGE=$FULL_IMAGE_NAME docker compose --env-file $ENV_FILE up -d --remove-orphans
 
   sync-branches:
     needs: deploy
