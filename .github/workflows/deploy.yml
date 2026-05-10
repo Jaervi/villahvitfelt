@@ -12,7 +12,7 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
 
     steps:
@@ -58,8 +58,9 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
           script: |
-            cd /path/to/villahvitfelt
+            cd ~/villahvitfelt
             
             # Determine env based on branch
             if [ "${{ github.ref }}" = "refs/heads/main" ]; then
@@ -74,3 +75,21 @@ jobs:
             # Pull and Restart
             docker compose --env-file $ENV_FILE pull
             docker compose --env-file $ENV_FILE up -d --remove-orphans
+
+  sync-branches:
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Merge main into staging
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout staging
+          git merge origin/main
+          git push origin staging
