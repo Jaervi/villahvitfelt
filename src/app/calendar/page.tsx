@@ -323,7 +323,6 @@ export default function CalendarPage() {
             <Group grow>
               <DatePicker
                 type="range"
-                label="Ajankohta"
                 value={dateRange}
                 onChange={setDateRange}
                 minDate={new Date()}

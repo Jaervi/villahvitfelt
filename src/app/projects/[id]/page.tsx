@@ -515,7 +515,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                           </Text>
                           {task.assigneeName && (
                             <Group gap={4}>
-                              <IconUsers size={14} c="dimmed" />
+                              <IconUsers size={14} color="gray" />
                               <Text size="xs" fw={700} c="dimmed">
                                 Vastuu: {task.assigneeName}
                               </Text>

@@ -145,7 +145,7 @@ export default function AdminPage() {
 
   const handleUpdateRole = async (userId: string, role: string) => {
     setLoading(true);
-    const { error } = await authClient.admin.setRole({ userId, role });
+    const { error } = await authClient.admin.setRole({ userId, role: role as any });
     if (!error) {
       notifications.show({ message: "Käyttäjän rooli päivitetty", color: "green" });
       await fetchData();
@@ -365,7 +365,7 @@ export default function AdminPage() {
                       </Table.Td>
                       <Table.Td>
                         <Group gap={4}>
-                          <IconMail size={14} c="dimmed" />
+                          <IconMail size={14} color="gray" />
                           <Text size="sm" fw={600}>{u.email}</Text>
                         </Group>
                       </Table.Td>

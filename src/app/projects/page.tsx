@@ -305,7 +305,27 @@ export default function ProjectsPage() {
   );
 }
 
-function ProjectForm({ values, onChange, onSubmit, loading, buttonText }: any) {
+interface ProjectFormValues {
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  budget: number;
+}
+
+function ProjectForm({ 
+  values, 
+  onChange, 
+  onSubmit, 
+  loading, 
+  buttonText 
+}: { 
+  values: ProjectFormValues; 
+  onChange: (values: ProjectFormValues) => void; 
+  onSubmit: () => void; 
+  loading: boolean; 
+  buttonText: string; 
+}) {
   return (
     <Stack gap="md">
       <TextInput
