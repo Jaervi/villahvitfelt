@@ -1,7 +1,7 @@
 'use client';
 
 import { Carousel } from '@mantine/carousel';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import Autoplay from 'embla-carousel-autoplay';
 import { Box, Overlay, Container, Stack } from '@mantine/core';
 import '@mantine/carousel/styles.css';
@@ -14,15 +14,24 @@ interface HeroCarouselProps {
 
 export function HeroCarousel({ images, height = 500, children }: HeroCarouselProps) {
   const autoplay = useRef(Autoplay({ delay: 5000 }));
+  const [hovered, setHovered] = useState(false);
 
   return (
-    <Box style={{ borderRadius: 'var(--mantine-radius-md)', overflow: 'hidden', position: 'relative' }}>
+    <Box 
+      style={{ borderRadius: 'var(--mantine-radius-md)', overflow: 'hidden', position: 'relative' }}
+      onMouseEnter={() => {
+        setHovered(true);
+        autoplay.current.stop();
+      }}
+      onMouseLeave={() => {
+        setHovered(false);
+        autoplay.current.reset();
+      }}
+    >
       <Carousel
         withIndicators
         height={height}
         plugins={[autoplay.current]}
-        onMouseEnter={autoplay.current.stop}
-        onMouseLeave={autoplay.current.reset}
         loop
         withControls={images.length > 1}
         styles={{
@@ -36,6 +45,8 @@ export function HeroCarousel({ images, height = 500, children }: HeroCarouselPro
           },
           controls: {
             zIndex: 4,
+            opacity: hovered ? 1 : 0,
+            transition: 'opacity 250ms ease',
           },
           indicators: {
             zIndex: 4,

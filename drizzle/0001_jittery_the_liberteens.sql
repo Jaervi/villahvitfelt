@@ -1,0 +1,1 @@
+ALTER TABLE "maintenanceTask" ADD COLUMN "isAutomatic" boolean DEFAULT false NOT NULL;

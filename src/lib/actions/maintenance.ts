@@ -30,8 +30,25 @@ export async function getMaintenanceTasksWithProgress() {
 
       let progress = 0;
       let currentVal = 0;
+      let nextDate: Date | null = null;
 
-      if (task.intervalType === "days") {
+      if (task.isAutomatic && task.intervalType === "days") {
+        const start = new Date(task.createdAt);
+        const intervalMs = task.intervalValue * 24 * 60 * 60 * 1000;
+        const nowMs = now.getTime();
+        const diff = nowMs - start.getTime();
+        
+        if (diff < 0) {
+          nextDate = start;
+          progress = 0;
+        } else {
+          const cycles = Math.ceil(diff / intervalMs);
+          nextDate = new Date(start.getTime() + cycles * intervalMs);
+          const currentCycleStart = start.getTime() + (cycles - 1) * intervalMs;
+          const elapsedInCycle = nowMs - currentCycleStart;
+          progress = (elapsedInCycle / intervalMs) * 100;
+        }
+      } else if (task.intervalType === "days") {
         const diffTime = Math.max(0, now.getTime() - lastCompletedAt.getTime());
         const diffDays = diffTime / (1000 * 60 * 60 * 24);
         currentVal = Math.floor(diffDays);
@@ -58,7 +75,8 @@ export async function getMaintenanceTasksWithProgress() {
       }
 
       let status = "good";
-      if (progress >= 100) status = "overdue";
+      if (task.isAutomatic) status = "automatic";
+      else if (progress >= 100) status = "overdue";
       else if (progress >= 75) status = "due-soon";
 
       return {
@@ -67,6 +85,7 @@ export async function getMaintenanceTasksWithProgress() {
         progress,
         currentVal,
         status,
+        nextDate,
       };
     }));
 
@@ -82,6 +101,7 @@ export async function createMaintenanceTask(data: {
   description: string | null;
   intervalType: string;
   intervalValue: number;
+  isAutomatic?: boolean;
 }) {
   const session = await getSession();
   if (!session || session.user.role !== "admin") {
@@ -89,7 +109,10 @@ export async function createMaintenanceTask(data: {
   }
 
   try {
-    await db.insert(maintenanceTask).values(data);
+    await db.insert(maintenanceTask).values({
+      ...data,
+      isAutomatic: data.isAutomatic || false,
+    });
     revalidatePath("/huolto");
     return { success: true };
   } catch (error) {
@@ -130,7 +153,7 @@ export async function deleteMaintenanceTask(id: string) {
   }
 }
 
-export async function logTaskCompletion(taskId: string, notes: string | null, guestName?: string | null) {
+export async function logTaskCompletion(taskId: string, notes: string | null, guestName?: string | null, completedAt?: Date | null) {
   const session = await getSession();
   
   try {
@@ -139,6 +162,7 @@ export async function logTaskCompletion(taskId: string, notes: string | null, gu
       userId: session?.user.id || null,
       guestName: session ? null : guestName,
       notes,
+      ...(completedAt ? { completedAt } : {}),
     });
     revalidatePath("/huolto");
     return { success: true };
