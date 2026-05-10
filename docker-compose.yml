@@ -33,4 +33,4 @@ services:
 
 networks:
   default:
-    name: ${ENV_PREFIX}-network
+    driver: bridge

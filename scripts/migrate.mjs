@@ -11,6 +11,26 @@ async function run() {
   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
   const db = drizzle(pool);
 
+  console.log("Waiting for database to be ready...");
+  let attempts = 0;
+  const maxAttempts = 20;
+  
+  while (attempts < maxAttempts) {
+    try {
+      await pool.query("SELECT 1");
+      console.log("Database is ready.");
+      break;
+    } catch (e) {
+      attempts++;
+      console.log(`Database not ready (attempt ${attempts}/${maxAttempts})...`);
+      await new Promise(res => setTimeout(res, 2000));
+    }
+  }
+
+  if (attempts === maxAttempts) {
+    throw new Error("Database connection timed out");
+  }
+
   console.log("Running migrations...");
 
   await migrate(db, { migrationsFolder: "./drizzle" });
