@@ -21,6 +21,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  runtime: "nodejs", // Required for auth.api calls
   matcher: ["/admin/:path*"],
 };
