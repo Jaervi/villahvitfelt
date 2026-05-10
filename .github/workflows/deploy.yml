@@ -102,8 +102,9 @@ jobs:
             # Log in to GHCR
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             
-            # Pull and Restart using the injected image name
+            # Pull, Migrate and Restart using the injected image name
             DOCKER_IMAGE=$FULL_IMAGE_NAME docker compose -p $COMPOSE_PROJECT_NAME --env-file $ENV_FILE pull
+            DOCKER_IMAGE=$FULL_IMAGE_NAME docker compose -p $COMPOSE_PROJECT_NAME --env-file $ENV_FILE run --rm app node scripts/migrate.mjs
             DOCKER_IMAGE=$FULL_IMAGE_NAME docker compose -p $COMPOSE_PROJECT_NAME --env-file $ENV_FILE up -d --remove-orphans
 
   sync-branches:
