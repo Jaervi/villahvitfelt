@@ -22,6 +22,7 @@ import {
   Box,
   LoadingOverlay,
   Anchor,
+  ThemeIcon,
 } from "@mantine/core";
 import {
   IconArrowLeft,
@@ -37,6 +38,7 @@ import {
   IconMessageDots,
   IconExternalLink,
   IconDeviceFloppy,
+  IconLock,
 } from "@tabler/icons-react";
 import { RichTextEditor, Link as RichTextLink } from "@mantine/tiptap";
 import { useEditor } from "@tiptap/react";
@@ -246,6 +248,61 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   };
 
   if (loading) return <Box pos="relative" h="100vh"><LoadingOverlay visible /></Box>;
+
+  // GUEST TEASER VIEW
+  if (project.isGuestView) {
+    return (
+      <Stack gap="xl">
+        <Button
+          component={Link}
+          href="/projects"
+          variant="subtle"
+          color="forestGreen"
+          leftSection={<IconArrowLeft size={18} />}
+          fw={700}
+        >
+          Palaa projekteihin
+        </Button>
+
+        <Paper p="xl" radius="md" withBorder shadow="sm">
+          <Stack gap="lg">
+            <Group justify="space-between" align="flex-start">
+              <Stack gap={4}>
+                <Title order={1} fw={800} style={{ letterSpacing: "-0.02em" }}>{project.title}</Title>
+                <Text fw={500} size="lg" c="dimmed">{project.description}</Text>
+              </Stack>
+              <Badge size="lg" variant="outline" color="gray">
+                {getStatusLabel(project.status)}
+              </Badge>
+            </Group>
+          </Stack>
+        </Paper>
+
+        <Paper p="xl" radius="md" withBorder bg="var(--mantine-color-blue-0)" style={{ border: '2px dashed var(--mantine-color-blue-4)' }}>
+          <Stack align="center" py="xl" gap="md">
+            <ThemeIcon size={60} radius="xl" color="blue">
+              <IconLock size={32} />
+            </ThemeIcon>
+            <Title order={2} fw={800} ta="center">Projektin yksityiskohdat on suojattu</Title>
+            <Text c="dimmed" fw={600} ta="center" maw={500} size="lg">
+              Kirjaudu sisään nähdäksesi tehtävälistat, hankinnat, budjettitiedot ja projektin muistiinpanot.
+            </Text>
+            <Button 
+              component={Link} 
+              href="/login" 
+              size="lg" 
+              color="blue" 
+              leftSection={<IconPlus size={20} />}
+              fw={800}
+              mt="md"
+            >
+              Kirjaudu sisään
+            </Button>
+          </Stack>
+        </Paper>
+      </Stack>
+    );
+  }
 
   const completedTasks = project.tasks.filter((t: any) => t.isCompleted).length;
   const progress = project.tasks.length > 0 ? (completedTasks / project.tasks.length) * 100 : 0;
