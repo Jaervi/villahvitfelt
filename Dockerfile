@@ -35,7 +35,7 @@ RUN adduser --system --uid 1001 nextjs
 
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/drizzle ./drizzle
-COPY --from=builder /app/scripts/migrate.mjs ./scripts/migrate.mjs
+COPY --from=builder /app/scripts/*.mjs ./scripts/
 COPY --from=builder /app/node_modules ./node_modules
 
 # Automatically leverage output traces to reduce image size
