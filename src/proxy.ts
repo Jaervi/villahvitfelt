@@ -1,41 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getSessionCookie } from "better-auth/cookies";
 
+/**
+ * Next.js 16 Proxy
+ * 
+ * RECOMMENDED PATTERN:
+ * 1. Proxy handles "optimistic" redirection by checking for cookie existence.
+ *    This is Edge-safe and prevents blocking the request with DB calls.
+ * 2. Pages/Layouts handle "secure" validation (role checks, DB session validation).
+ */
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  console.log(`>>> [SUPER-PROXY] Request received for: ${pathname}`);
 
-  // Protect /admin routes
+  // Optimistic redirect for /admin
   if (pathname.startsWith("/admin")) {
-    console.log(">>> [SUPER-PROXY] ADMIN ROUTE DETECTED. VALIDATING VIA API...");
-    try {
-      const response = await fetch(`${request.nextUrl.origin}/api/auth/get-session`, {
-        headers: {
-          cookie: request.headers.get("cookie") || "",
-        },
-      });
+    const sessionCookie = getSessionCookie(request);
 
-      if (!response.ok) {
-        console.log(">>> [SUPER-PROXY] API ERROR. REDIRECTING TO /login");
-        return NextResponse.redirect(new URL("/login", request.url));
-      }
-
-      const session = await response.json();
-
-      if (!session) {
-        console.log(">>> [SUPER-PROXY] NO SESSION FOUND. REDIRECTING TO /login");
-        return NextResponse.redirect(new URL("/login", request.url));
-      }
-
-      console.log(`>>> [SUPER-PROXY] USER FOUND: ${session.user.email} (Role: ${session.user.role})`);
-
-      if (session.user.role !== "admin") {
-        console.log(">>> [SUPER-PROXY] USER IS NOT ADMIN. REDIRECTING TO /");
-        return NextResponse.redirect(new URL("/", request.url));
-      }
-      
-      console.log(">>> [SUPER-PROXY] ACCESS GRANTED.");
-    } catch (e: any) {
-      console.error(">>> [SUPER-PROXY] ERROR:", e.message);
+    if (!sessionCookie) {
+      console.log(">>> [PROXY] NO SESSION COOKIE FOUND. REDIRECTING TO /login");
       return NextResponse.redirect(new URL("/login", request.url));
     }
   }
