@@ -34,6 +34,7 @@ import {
   IconTrash,
   IconEdit,
   IconUser,
+  IconRefresh,
 } from "@tabler/icons-react";
 import {
   getMaintenanceTasksWithProgress,
@@ -45,6 +46,9 @@ import {
 } from "@/lib/actions/maintenance";
 import { notifications } from "@mantine/notifications";
 import { authClient } from "@/lib/auth-client";
+import { Checkbox } from "@mantine/core";
+import { DateTimePicker } from "@mantine/dates";
+import "@mantine/dates/styles.css";
 
 export default function MaintenancePage() {
   const [tasks, setTasks] = useState<any[]>([]);
@@ -60,6 +64,8 @@ export default function MaintenancePage() {
   const [history, setHistory] = useState<any[]>([]);
   const [logNotes, setLogNotes] = useState("");
   const [guestName, setGuestName] = useState("");
+  const [customDateEnabled, setCustomDateEnabled] = useState(false);
+  const [customDate, setCustomDate] = useState<Date | null>(new Date());
 
   const { data: session } = authClient.useSession();
   const isAdmin = session?.user.role === "admin";
@@ -69,6 +75,7 @@ export default function MaintenancePage() {
     description: "",
     intervalType: "days",
     intervalValue: 30,
+    isAutomatic: false,
   });
 
   const fetchData = async () => {
@@ -89,7 +96,7 @@ export default function MaintenancePage() {
     if (res.success) {
       notifications.show({ title: "Luotu", message: "Huoltotehtävä lisätty", color: "green" });
       setCreateModalOpened(false);
-      setTaskForm({ title: "", description: "", intervalType: "days", intervalValue: 30 });
+      setTaskForm({ title: "", description: "", intervalType: "days", intervalValue: 30, isAutomatic: false });
       await fetchData();
     } else {
       notifications.show({ title: "Virhe", message: res.error || "Luominen epäonnistui", color: "red" });
@@ -129,12 +136,19 @@ export default function MaintenancePage() {
       return;
     }
     setActionLoading(true);
-    const res = await logTaskCompletion(selectedTask.id, logNotes, guestName);
+    const res = await logTaskCompletion(
+      selectedTask.id, 
+      logNotes, 
+      guestName, 
+      customDateEnabled ? customDate : null
+    );
     if (res.success) {
       notifications.show({ title: "Valmis", message: "Huolto kuitattu tehdyksi", color: "green" });
       setLogModalOpened(false);
       setLogNotes("");
       setGuestName("");
+      setCustomDateEnabled(false);
+      setCustomDate(new Date());
       await fetchData();
     }
     setActionLoading(false);
@@ -147,6 +161,7 @@ export default function MaintenancePage() {
       description: task.description || "",
       intervalType: task.intervalType,
       intervalValue: task.intervalValue,
+      isAutomatic: task.isAutomatic || false,
     });
     setEditModalOpened(true);
   };
@@ -160,6 +175,7 @@ export default function MaintenancePage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
+      case "automatic": return "blue";
       case "overdue": return "red";
       case "due-soon": return "orange";
       default: return "forestGreen";
@@ -182,7 +198,7 @@ export default function MaintenancePage() {
             leftSection={<IconPlus size={18} />} 
             color="forestGreen" 
             onClick={() => {
-              setTaskForm({ title: "", description: "", intervalType: "days", intervalValue: 30 });
+              setTaskForm({ title: "", description: "", intervalType: "days", intervalValue: 30, isAutomatic: false });
               setCreateModalOpened(true);
             }}
             fw={800}
@@ -201,7 +217,7 @@ export default function MaintenancePage() {
               <Group justify="space-between" wrap="nowrap">
                 <Group gap="xs" wrap="nowrap" style={{ flex: 1 }}>
                   <ThemeIcon variant="light" color={getStatusColor(task.status)} radius="xl">
-                    {task.status === "overdue" ? <IconAlertTriangle size={18} /> : <IconCheck size={18} />}
+                    {task.isAutomatic ? <IconRefresh size={18} /> : task.status === "overdue" ? <IconAlertTriangle size={18} /> : <IconCheck size={18} />}
                   </ThemeIcon>
                   <Title order={3} size="h4" fw={800} style={{ flex: 1 }}>{task.title}</Title>
                 </Group>
@@ -219,45 +235,72 @@ export default function MaintenancePage() {
 
               <Text size="sm" c="dimmed" fw={500} style={{ flex: 1 }}>{task.description || "Ei kuvausta."}</Text>
 
-              <Paper withBorder p="md" radius="md" bg="var(--mantine-color-gray-0)">
-                <Group justify="space-between" mb={8}>
-                  <Text size="xs" fw={800} tt="uppercase" c="dimmed">
-                    {task.intervalType === "days" ? "Aika" : "Käyttö"}
-                  </Text>
-                  <Text size="xs" fw={800} c={getStatusColor(task.status)}>
-                    {Math.round(task.progress)}%
-                  </Text>
-                </Group>
-                <Progress 
-                  value={Math.min(100, task.progress)} 
-                  color={getStatusColor(task.status)} 
-                  size="xl" 
-                  radius="xl" 
-                  striped={task.progress >= 100}
-                  animated={task.progress >= 100}
-                />
-                <Group justify="space-between" mt={8}>
-                   <Text size="xs" fw={700}>
-                    {task.currentVal} / {task.intervalValue} {task.intervalType === "days" ? "pv" : "hlö-pv"}
-                   </Text>
-                   <Text size="xs" fw={700} c="dimmed">
-                    Viimeksi: {task.lastLog ? new Date(task.lastLog.completedAt).toLocaleDateString("fi-FI") : "-"}
-                   </Text>
-                </Group>
-              </Paper>
+              {task.isAutomatic ? (
+                <Paper withBorder p="md" radius="md" bg="var(--mantine-color-blue-0)">
+                   <Group justify="space-between" mb={8}>
+                    <Group gap="xs">
+                      <IconRefresh size={14} color="var(--mantine-color-blue-7)" />
+                      <Text size="xs" fw={800} tt="uppercase" c="blue.7">Toistuvuus</Text>
+                    </Group>
+                    <Text size="xs" fw={800} c="blue.8">{Math.round(task.progress)}%</Text>
+                  </Group>
+                  <Progress 
+                    value={Math.min(100, task.progress)} 
+                    color="blue" 
+                    size="xl" 
+                    radius="xl" 
+                    striped
+                    animated
+                  />
+                  <Divider my="xs" />
+                  <Group justify="space-between">
+                    <Text size="xs" fw={700}>Väli: {task.intervalValue} pv</Text>
+                    <Text size="xs" fw={800} c="blue.9">
+                      Seuraava: {task.nextDate ? new Date(task.nextDate).toLocaleDateString("fi-FI") : "-"}
+                    </Text>
+                  </Group>
+                </Paper>
+              ) : (
+                <Paper withBorder p="md" radius="md" bg="var(--mantine-color-gray-0)">
+                  <Group justify="space-between" mb={8}>
+                    <Text size="xs" fw={800} tt="uppercase" c="dimmed">
+                      {task.intervalType === "days" ? "Aika" : "Käyttö"}
+                    </Text>
+                    <Text size="xs" fw={800} c={getStatusColor(task.status)}>
+                      {Math.round(task.progress)}%
+                    </Text>
+                  </Group>
+                  <Progress 
+                    value={Math.min(100, task.progress)} 
+                    color={getStatusColor(task.status)} 
+                    size="xl" 
+                    radius="xl" 
+                    striped={task.progress >= 100}
+                    animated={task.progress >= 100}
+                  />
+                  <Group justify="space-between" mt={8}>
+                     <Text size="xs" fw={700}>
+                      {task.currentVal} / {task.intervalValue} {task.intervalType === "days" ? "pv" : "hlö-pv"}
+                     </Text>
+                     <Text size="xs" fw={700} c="dimmed">
+                      Viimeksi: {task.lastLog ? new Date(task.lastLog.completedAt).toLocaleDateString("fi-FI") : "-"}
+                     </Text>
+                  </Group>
+                </Paper>
+              )}
 
               <Group grow>
                 <Button 
                   variant="filled" 
-                  color="forestGreen" 
-                  leftSection={<IconCheck size={18} />}
+                  color={task.isAutomatic ? "blue" : "forestGreen"} 
+                  leftSection={task.isAutomatic ? <IconRefresh size={18} /> : <IconCheck size={18} />}
                   onClick={() => {
                     setSelectedTask(task);
                     setLogModalOpened(true);
                   }}
                   fw={800}
                 >
-                  Kuittaa
+                  {task.isAutomatic ? "Synkronoi" : "Kuittaa"}
                 </Button>
                 <Button 
                   variant="light" 
@@ -295,6 +338,12 @@ export default function MaintenancePage() {
               fw={700}
             />
           </Group>
+          <Checkbox 
+            label="Automaattinen toistuva tapahtuma (esim. jäteastia)" 
+            checked={taskForm.isAutomatic} 
+            onChange={(e) => setTaskForm({...taskForm, isAutomatic: e.currentTarget.checked})}
+            fw={600}
+          />
           <Button fullWidth color="forestGreen" onClick={handleCreateTask} loading={actionLoading} fw={800} mt="md">Luo tehtävä</Button>
         </Stack>
       </Modal>
@@ -320,6 +369,12 @@ export default function MaintenancePage() {
               fw={700}
             />
           </Group>
+          <Checkbox 
+            label="Automaattinen toistuva tapahtuma (esim. jäteastia)" 
+            checked={taskForm.isAutomatic} 
+            onChange={(e) => setTaskForm({...taskForm, isAutomatic: e.currentTarget.checked})}
+            fw={600}
+          />
           <Button fullWidth color="forestGreen" onClick={handleUpdateTask} loading={actionLoading} fw={800} mt="md">Tallenna muutokset</Button>
         </Stack>
       </Modal>
@@ -342,8 +397,36 @@ export default function MaintenancePage() {
               fw={700} 
             />
           )}
+          
+          <Paper withBorder p="sm" radius="md" bg="var(--mantine-color-gray-0)">
+            <Checkbox 
+              label="Valitse eri aika (oletuksena nyt)" 
+              checked={customDateEnabled} 
+              onChange={(e) => setCustomDateEnabled(e.currentTarget.checked)}
+              fw={600}
+              mb={customDateEnabled ? "sm" : 0}
+            />
+            {customDateEnabled && (
+              <DateTimePicker 
+                label="Suoritusajankohta"
+                placeholder="Valitse päivä ja kellonaika"
+                value={customDate}
+                onChange={setCustomDate}
+                fw={700}
+              />
+            )}
+          </Paper>
+
           <Textarea label="Huomioita (valinnainen)" placeholder="Esim. Kaikki näytti olevan kunnossa." value={logNotes} onChange={(e) => setLogNotes(e.currentTarget.value)} fw={700} minRows={3} />
-          <Button fullWidth color="forestGreen" onClick={handleLogCompletion} loading={actionLoading} fw={800}>Tallenna ja nollaa mittari</Button>
+          <Button 
+            fullWidth 
+            color="forestGreen" 
+            onClick={handleLogCompletion} 
+            loading={actionLoading} 
+            fw={800}
+          >
+            {selectedTask?.isAutomatic ? "Synkronoi ja nollaa mittari" : "Tallenna ja nollaa mittari"}
+          </Button>
         </Stack>
       </Modal>
 

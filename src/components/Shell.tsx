@@ -1,23 +1,30 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { AppShell, NavLink, Stack, Box, Tooltip, ActionIcon, Avatar, Text, Group, Menu, UnstyledButton, Button, SegmentedControl, useMantineColorScheme, Center, Alert } from '@mantine/core';
+import { AppShell, NavLink, Stack, Box, Tooltip, ActionIcon, Avatar, Text, Group, Menu, UnstyledButton, Button, SegmentedControl, useMantineColorScheme, Center, Alert, Burger, ScrollArea } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { IconMap, IconBook2, IconRipple, IconShieldHeart, IconChevronRight, IconChevronLeft, IconLogout, IconUser, IconSettings, IconLogin, IconSun, IconShip, IconMoon, IconDeviceDesktop, IconCalendar, IconChartBar, IconLayoutKanban, IconInfoCircle } from '@tabler/icons-react';
 import Link from 'next/link';
 import { authClient } from '@/lib/auth-client';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 export function Shell({ children }: { children: React.ReactNode }) {
-  const [opened, { toggle }] = useDisclosure(true);
+  const [mobileOpened, { toggle: toggleMobile, close: closeMobile }] = useDisclosure();
+  const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true);
   const { colorScheme, setColorScheme } = useMantineColorScheme();
   const { data: session } = authClient.useSession();
   const router = useRouter();
+  const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Close mobile drawer when route changes
+  useEffect(() => {
+    closeMobile();
+  }, [pathname, closeMobile]);
 
   const handleLogout = async () => {
     await authClient.signOut();
@@ -37,22 +44,40 @@ export function Shell({ children }: { children: React.ReactNode }) {
     { label: 'Saapuminen', icon: IconMap, href: '/arrival' },
     { label: 'Mökin ohjeet', icon: IconBook2, href: '/manual' },
     { label: 'Sauna & Ulkoilu', icon: IconRipple, href: '/outdoors' },
-    { label: 'Hätätilanteet', icon: IconShieldHeart, href: '/emergency' },
     { label: 'Tilastot', icon: IconChartBar, href: '/stats' },
   ];
 
   return (
     <AppShell
+      header={{ height: { base: 60, sm: 0 } }}
       navbar={{
-        width: opened ? 280 : 80,
+        width: { base: 280, sm: desktopOpened ? 280 : 80 },
         breakpoint: 'sm',
+        collapsed: { mobile: !mobileOpened },
       }}
       padding="xl"
     >
-      <AppShell.Navbar p="md" style={{ borderRight: '1px solid var(--mantine-color-default-border)' }}>
+      <AppShell.Header hiddenFrom="sm" style={{ borderBottom: '1px solid var(--mantine-color-default-border)' }}>
+        <Group h="100%" px="md" justify="space-between">
+          <Burger opened={mobileOpened} onClick={toggleMobile} size="sm" color="var(--mantine-color-forestGreen-filled)" />
+          <Text fw={800} size="lg" style={{ letterSpacing: '-0.02em', cursor: 'pointer', color: 'var(--mantine-color-text)' }} onClick={() => router.push('/')}>
+            Villa Hvitfelt
+          </Text>
+          <Box w={24}>
+             {session && (
+               <Avatar src={session.user.image || undefined} radius="xl" color="forestGreen" size="sm" onClick={() => router.push('/profile')} style={{ cursor: 'pointer' }}>
+                  {session.user.name?.charAt(0)}
+               </Avatar>
+             )}
+          </Box>
+        </Group>
+      </AppShell.Header>
+
+      <AppShell.Navbar p={desktopOpened || mobileOpened ? "md" : "xs"} style={{ borderRight: '1px solid var(--mantine-color-default-border)' }}>
         <Stack gap="xl" style={{ height: '100%' }}>
-          <Box px={opened ? 'sm' : 0} style={{ display: 'flex', justifyContent: opened ? 'space-between' : 'center', alignItems: 'center' }}>
-            {opened && (
+          {/* Desktop Collapse Toggle */}
+          <Box visibleFrom="sm" px={desktopOpened ? 'sm' : 0} style={{ display: 'flex', justifyContent: desktopOpened ? 'space-between' : 'center', alignItems: 'center' }}>
+            {desktopOpened && (
               <Box fw={800} fz="xl" style={{ letterSpacing: '-0.02em', cursor: 'pointer', color: 'var(--mantine-color-text)' }} onClick={() => router.push('/')}>
                 Villa Hvitfelt
               </Box>
@@ -60,50 +85,62 @@ export function Shell({ children }: { children: React.ReactNode }) {
             <ActionIcon 
               variant="filled" 
               color="forestGreen" 
-              onClick={toggle} 
+              onClick={toggleDesktop} 
               size="lg"
             >
-              {opened ? <IconChevronLeft size={20} /> : <IconChevronRight size={20} />}
+              {desktopOpened ? <IconChevronLeft size={20} /> : <IconChevronRight size={20} />}
             </ActionIcon>
           </Box>
 
-          <Stack gap="xs" style={{ flex: 1 }}>
-            {navLinks.map((link) => {
-              const Icon = link.icon;
-              return opened ? (
-                <NavLink
-                  key={link.label}
-                  component={Link}
-                  href={link.href}
-                  label={link.label}
-                  leftSection={<Icon size={22} strokeWidth={2.5} />}
-                  variant="filled"
-                  color="forestGreen"
-                  py="md"
-                  styles={{
-                    label: { fontWeight: 800, fontSize: '16px' }
-                  }}
-                />
-              ) : (
-                <Tooltip key={link.label} label={link.label} position="right" withArrow transitionProps={{ duration: 0 }}>
-                  <ActionIcon
+          {/* Mobile specific top logo inside drawer */}
+          <Box hiddenFrom="sm" px="sm" style={{ display: 'flex', alignItems: 'center' }}>
+            <Text fw={800} fz="xl" style={{ letterSpacing: '-0.02em', color: 'var(--mantine-color-text)' }}>
+              Valikko
+            </Text>
+          </Box>
+
+          <ScrollArea style={{ flex: 1 }} scrollbarSize={4} offsetScrollbars>
+            <Stack gap="xs">
+              {navLinks.map((link) => {
+                const Icon = link.icon;
+                const isExpanded = mobileOpened || desktopOpened;
+
+                return isExpanded ? (
+                  <NavLink
+                    key={link.label}
                     component={Link}
                     href={link.href}
-                    variant="subtle"
+                    label={link.label}
+                    leftSection={<Icon size={22} strokeWidth={2.5} />}
+                    variant="filled"
+                    active={pathname.startsWith(link.href)}
                     color="forestGreen"
-                    size="54px"
-                    mx="auto"
-                  >
-                    <Icon size={26} strokeWidth={2.5} />
-                  </ActionIcon>
-                </Tooltip>
-              );
-            })}
-          </Stack>
+                    py="md"
+                    styles={{
+                      label: { fontWeight: 800, fontSize: '16px' }
+                    }}
+                  />
+                ) : (
+                  <Tooltip key={link.label} label={link.label} position="right" withArrow transitionProps={{ duration: 0 }} disabled={mobileOpened}>
+                    <ActionIcon
+                      component={Link}
+                      href={link.href}
+                      variant={pathname.startsWith(link.href) ? "filled" : "subtle"}
+                      color="forestGreen"
+                      size="44px"
+                      mx="auto"
+                    >
+                      <Icon size={24} strokeWidth={2.5} />
+                    </ActionIcon>
+                  </Tooltip>
+                );
+              })}
+            </Stack>
+          </ScrollArea>
 
           <Box pt="md" style={{ borderTop: '1px solid var(--mantine-color-default-border)' }}>
-            {opened && mounted && (
-              <Box mb="md">
+            {(mobileOpened || desktopOpened) && mounted && (
+              <Box mb="md" px={mobileOpened ? "sm" : 0}>
                 <SegmentedControl
                   value={colorScheme}
                   onChange={(value) => setColorScheme(value as any)}
@@ -118,8 +155,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
                 />
               </Box>
             )}
+            
             {session ? (
-              opened ? (
+              (mobileOpened || desktopOpened) ? (
                 <Menu position="right-end" withArrow shadow="md">
                   <Menu.Target>
                     <UnstyledButton p="sm" style={{ width: '100%', borderRadius: '8px' }}>
@@ -156,7 +194,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
                 </Tooltip>
               )
             ) : (
-              opened ? (
+              (mobileOpened || desktopOpened) ? (
                 <Button 
                   component={Link} 
                   href="/login" 

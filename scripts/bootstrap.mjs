@@ -1,6 +1,6 @@
 import pkg from "pg";
 const { Pool } = pkg;
-import { crypto } from "node:crypto";
+import crypto from "node:crypto";
 
 async function run() {
   if (!process.env.DATABASE_URL) {
