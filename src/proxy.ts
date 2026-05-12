@@ -1,40 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getSessionCookie } from "better-auth/cookies";
 
+/**
+ * Next.js 16 Proxy
+ * 
+ * RECOMMENDED PATTERN:
+ * 1. Proxy handles "optimistic" redirection by checking for cookie existence.
+ *    This is Edge-safe and prevents blocking the request with DB calls.
+ * 2. Pages/Layouts handle "secure" validation (role checks, DB session validation).
+ */
 export async function proxy(request: NextRequest) {
-  const { pathname, origin } = request.nextUrl;
+  const { pathname } = request.nextUrl;
 
-  // We only care about protecting /admin routes for now
+  // Optimistic redirect for /admin
   if (pathname.startsWith("/admin")) {
-    const sessionCookie = request.cookies.get("better-auth.session_token") || 
-                          request.cookies.get("__secure-better-auth.session_token");
+    const sessionCookie = getSessionCookie(request);
 
     if (!sessionCookie) {
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
-
-    try {
-      // Validate the session by calling the Better Auth API
-      const response = await fetch(`${origin}/api/auth/get-session`, {
-        headers: {
-          cookie: request.headers.get("cookie") || "",
-        },
-      });
-
-      if (!response.ok) {
-        return NextResponse.redirect(new URL("/login", request.url));
-      }
-
-      const session = await response.json();
-
-      // If no session or user is not an admin, redirect
-      // Note: We check session.user.role if we want strict admin-only access
-      if (!session || !session.user || session.user.role !== "admin") {
-        // You might want a different "unauthorized" page, 
-        // but for now redirecting to home or login is common.
-        return NextResponse.redirect(new URL("/", request.url));
-      }
-    } catch (error) {
-      console.error("Middleware session validation error:", error);
+      console.log(">>> [PROXY] NO SESSION COOKIE FOUND. REDIRECTING TO /login");
       return NextResponse.redirect(new URL("/login", request.url));
     }
   }

@@ -28,7 +28,7 @@ import {
 } from "@tabler/icons-react";
 import { getGuides, createGuide } from "@/lib/actions/guides";
 import { notifications } from "@mantine/notifications";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 
 interface Guide {
@@ -40,6 +40,7 @@ interface Guide {
 }
 
 export default function GuidesHubPage() {
+  const router = useRouter();
   const [guides, setGuides] = useState<Guide[]>([]);
   const [loading, setLoading] = useState(true);
   const [createModalOpened, setCreateModalOpened] = useState(false);
@@ -135,8 +136,7 @@ export default function GuidesHubPage() {
                   padding="xl" 
                   radius="md" 
                   withBorder 
-                  component={Link}
-                  href={`/oppaat/${guide.id}`}
+                  onClick={() => router.push(`/oppaat/${guide.id}`)}
                   style={{ 
                     transition: "transform 0.1s ease, box-shadow 0.1s ease",
                     cursor: "pointer",

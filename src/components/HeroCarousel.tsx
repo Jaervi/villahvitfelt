@@ -39,7 +39,7 @@ export function HeroCarousel({ images, height = 500, children }: HeroCarouselPro
             width: 12,
             height: 4,
             transition: 'width 250ms ease',
-            '&[data-active]': {
+            '&[dataActive]': {
               width: 40,
             },
           },

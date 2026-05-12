@@ -316,7 +316,7 @@ export default function AdminPage() {
             borderBottom: '3px solid transparent',
             transition: 'all 0.2s ease',
             padding: '12px 20px',
-            '&[data-active]': {
+            '&[dataActive]': {
               fontWeight: 800,
               backgroundColor: 'transparent',
             },

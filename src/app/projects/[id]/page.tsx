@@ -23,6 +23,9 @@ import {
   LoadingOverlay,
   Anchor,
   ThemeIcon,
+  FileButton,
+  Image,
+  Card,
 } from "@mantine/core";
 import {
   IconArrowLeft,
@@ -39,6 +42,7 @@ import {
   IconExternalLink,
   IconDeviceFloppy,
   IconLock,
+  IconUpload,
 } from "@tabler/icons-react";
 import { RichTextEditor, Link as RichTextLink } from "@mantine/tiptap";
 import { useEditor } from "@tiptap/react";
@@ -58,6 +62,7 @@ import {
   toggleProjectItemProcured,
   deleteProjectItem,
 } from "@/lib/actions/projects";
+import { deleteMedia } from "@/lib/actions/media";
 import { notifications } from "@mantine/notifications";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -100,6 +105,49 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     priority: "",
     budget: 0,
   });
+
+  const [uploading, setUploading] = useState(false);
+
+  const handleUpload = async (file: File | null) => {
+    if (!file) return;
+    setUploading(true);
+    
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("relatedType", "project");
+    formData.append("relatedId", id);
+
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (res.ok) {
+        notifications.show({ title: "Kuva ladattu", message: "Tiedosto on tallennettu onnistuneesti.", color: "green" });
+        await fetchData();
+      } else {
+        const data = await res.json();
+        notifications.show({ title: "Virhe", message: data.error || "Lataus epäonnistui.", color: "red" });
+      }
+    } catch (error) {
+      notifications.show({ title: "Virhe", message: "Yhteysvirhe.", color: "red" });
+    }
+    setUploading(false);
+  };
+
+  const handleDeleteMedia = async (mediaId: string) => {
+    if (!confirm("Haluatko varmasti poistaa tämän tiedoston?")) return;
+    setSaving(true);
+    const res = await deleteMedia(mediaId, "project", id);
+    if (res.success) {
+      notifications.show({ message: "Tiedosto poistettu.", color: "green" });
+      await fetchData();
+    } else {
+      notifications.show({ title: "Virhe", message: res.error, color: "red" });
+    }
+    setSaving(false);
+  };
 
   useEffect(() => {
     if (editor) {
@@ -287,17 +335,17 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
             <Text c="dimmed" fw={600} ta="center" maw={500} size="lg">
               Kirjaudu sisään nähdäksesi tehtävälistat, hankinnat, budjettitiedot ja projektin muistiinpanot.
             </Text>
-            <Button 
-              component={Link} 
-              href="/login" 
-              size="lg" 
-              color="blue" 
-              leftSection={<IconPlus size={20} />}
-              fw={800}
-              mt="md"
-            >
-              Kirjaudu sisään
-            </Button>
+            <Link href="/login" style={{ textDecoration: 'none' }}>
+              <Button 
+                size="lg" 
+                color="blue" 
+                leftSection={<IconPlus size={20} />}
+                fw={800}
+                mt="md"
+              >
+                Kirjaudu sisään
+              </Button>
+            </Link>
           </Stack>
         </Paper>
       </Stack>
@@ -312,8 +360,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     <Stack gap="xl">
       <Group justify="space-between">
         <Button
-          component={Link}
-          href="/projects"
+          onClick={() => router.push("/projects")}
           variant="subtle"
           color="forestGreen"
           leftSection={<IconArrowLeft size={18} />}
@@ -728,13 +775,55 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         </Tabs.Panel>
 
         <Tabs.Panel value="media">
-          <Paper p="xl" radius="md" withBorder>
-            <Stack align="center" py="xl" gap="md">
-              <IconPhoto size={60} color="var(--mantine-color-gray-4)" />
-              <Title order={3} fw={800} c="dimmed">Mediahallinta tulossa</Title>
-              <Text c="dimmed" ta="center" fw={600}>
-                Tiedostojen ja valokuvien hallinta toteutetaan myöhemmässä vaiheessa.
-              </Text>
+          <Paper p="xl" radius="md" withBorder shadow="sm">
+            <Stack gap="xl">
+              <Group justify="space-between" align="center">
+                <div>
+                  <Title order={3} fw={800}>Projektin media</Title>
+                  <Text size="sm" c="dimmed" fw={500}>Lataa ja hallitse projektiin liittyviä kuvia.</Text>
+                </div>
+                {isAdmin && (
+                  <FileButton onChange={handleUpload} accept="image/png,image/jpeg,image/webp">
+                    {(props) => (
+                      <Button {...props} leftSection={<IconUpload size={18} />} loading={uploading} color="forestGreen" fw={800}>
+                        Lataa kuva
+                      </Button>
+                    )}
+                  </FileButton>
+                )}
+              </Group>
+
+              {project.media && project.media.length === 0 ? (
+                <Stack align="center" py="xl" gap="md">
+                  <IconPhoto size={60} color="var(--mantine-color-gray-4)" />
+                  <Text c="dimmed" ta="center" fw={600}>
+                    Ei vielä ladattuja kuvia.
+                  </Text>
+                </Stack>
+              ) : (
+                <SimpleGrid cols={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing="md">
+                  {project.media?.map((m: any) => (
+                    <Card key={m.id} p={0} radius="md" withBorder style={{ overflow: 'hidden' }}>
+                      <Card.Section>
+                        <Image 
+                          src={m.filePath} 
+                          alt={m.fileName} 
+                          height={200}
+                          style={{ objectFit: 'cover' }}
+                        />
+                      </Card.Section>
+                      {isAdmin && (
+                        <Group p="xs" justify="space-between">
+                          <Text size="xs" c="dimmed" truncate style={{ flex: 1 }} fw={600}>{m.fileName}</Text>
+                          <ActionIcon color="red" variant="subtle" onClick={() => handleDeleteMedia(m.id)}>
+                            <IconTrash size={16} />
+                          </ActionIcon>
+                        </Group>
+                      )}
+                    </Card>
+                  ))}
+                </SimpleGrid>
+              )}
             </Stack>
           </Paper>
         </Tabs.Panel>

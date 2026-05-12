@@ -38,12 +38,11 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
   const navLinks = [
     { label: 'Kalenteri', icon: IconCalendar, href: '/calendar' },
+    { label: 'Saapuminen', icon: IconMap, href: '/arrival' },
+    { label: 'Mökillä', icon: IconBook2, href: '/manual' },
+    { label: 'Oppaat', icon: IconBook2, href: '/oppaat' },
     { label: 'Huoltokirja', icon: IconSettings, href: '/huolto' },
     { label: 'Projektit', icon: IconLayoutKanban, href: '/projects' },
-    { label: 'Oppaat', icon: IconBook2, href: '/oppaat' },
-    { label: 'Saapuminen', icon: IconMap, href: '/arrival' },
-    { label: 'Mökin ohjeet', icon: IconBook2, href: '/manual' },
-    { label: 'Sauna & Ulkoilu', icon: IconRipple, href: '/outdoors' },
     { label: 'Tilastot', icon: IconChartBar, href: '/stats' },
   ];
 
@@ -108,12 +107,11 @@ export function Shell({ children }: { children: React.ReactNode }) {
                 return isExpanded ? (
                   <NavLink
                     key={link.label}
-                    component={Link}
-                    href={link.href}
                     label={link.label}
                     leftSection={<Icon size={22} strokeWidth={2.5} />}
                     variant="filled"
                     active={pathname.startsWith(link.href)}
+                    onClick={() => router.push(link.href)}
                     color="forestGreen"
                     py="md"
                     styles={{
@@ -123,8 +121,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
                 ) : (
                   <Tooltip key={link.label} label={link.label} position="right" withArrow transitionProps={{ duration: 0 }} disabled={mobileOpened}>
                     <ActionIcon
-                      component={Link}
-                      href={link.href}
+                      onClick={() => router.push(link.href)}
                       variant={pathname.startsWith(link.href) ? "filled" : "subtle"}
                       color="forestGreen"
                       size="44px"
@@ -173,8 +170,8 @@ export function Shell({ children }: { children: React.ReactNode }) {
                     </UnstyledButton>
                   </Menu.Target>
                   <Menu.Dropdown>
-                    <Menu.Item component={Link} href="/profile" leftSection={<IconUser size={16} />}>Profiili</Menu.Item>
-                    <Menu.Item component={Link} href="/settings" leftSection={<IconSettings size={16} />}>Asetukset</Menu.Item>
+                    <Menu.Item onClick={() => router.push("/profile")} leftSection={<IconUser size={16} />}>Profiili</Menu.Item>
+                    <Menu.Item onClick={() => router.push("/settings")} leftSection={<IconSettings size={16} />}>Asetukset</Menu.Item>
                     <Menu.Divider />
                     <Menu.Item color="red" leftSection={<IconLogout size={16} />} onClick={handleLogout}>Kirjaudu ulos</Menu.Item>
                   </Menu.Dropdown>
@@ -196,8 +193,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
             ) : (
               (mobileOpened || desktopOpened) ? (
                 <Button 
-                  component={Link} 
-                  href="/login" 
+                  onClick={() => router.push("/login")} 
                   variant="filled" 
                   color="forestGreen" 
                   fullWidth 
@@ -209,8 +205,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
               ) : (
                 <Tooltip label="Kirjaudu sisään" position="right" withArrow>
                   <ActionIcon 
-                    component={Link} 
-                    href="/login" 
+                    onClick={() => router.push("/login")} 
                     variant="filled" 
                     color="forestGreen" 
                     size="54px" 
