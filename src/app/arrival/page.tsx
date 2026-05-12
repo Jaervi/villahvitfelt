@@ -209,24 +209,30 @@ export default async function ArrivalPage() {
         </Paper>
 
         {/* CONTINUITY LINK */}
-        <Paper withBorder radius="md" p="xl" shadow="sm" bg="var(--mantine-color-forestGreen-light)">
+        <Paper withBorder radius="md" p={{ base: 'lg', sm: 'xl' }} shadow="sm" bg="var(--mantine-color-forestGreen-light)">
           <Stack align="center" gap="sm">
             <Text fw={800} size="xl" ta="center">Oletko jo asettunut taloksi?</Text>
             <Text size="md" fw={500} ta="center" style={{ maxWidth: 600 }}>
               Kun olet päässyt perille, voit tutustua tarkemmin mökin varusteisiin, veneen käyttöön ja harrastusvälineisiin.
             </Text>
-            <Link href="/manual" style={{ textDecoration: 'none' }}>
-              <Button 
-                size="lg" 
-                color="forestGreen" 
-                fw={800} 
-                variant="filled"
-                rightSection={<IconArrowRight size={20} />}
-                mt="md"
-              >
-                Seuraavaksi: Tutustu mökin varusteisiin ja veneeseen
-              </Button>
-            </Link>
+            <Box w="100%" display="flex" style={{ justifyContent: 'center' }}>
+              <Link href="/manual" style={{ textDecoration: 'none', width: '100%', display: 'flex', justifyContent: 'center' }}>
+                <Button 
+                  size="lg" 
+                  color="forestGreen" 
+                  fw={800} 
+                  variant="filled"
+                  rightSection={<IconArrowRight size={20} />}
+                  mt="md"
+                  style={{
+                    width: '100%',
+                    maxWidth: '400px'
+                  }}
+                >
+                  Mökillä: Varusteet ja vene
+                </Button>
+              </Link>
+            </Box>
           </Stack>
         </Paper>
       </Stack>

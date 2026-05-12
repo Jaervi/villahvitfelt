@@ -27,7 +27,7 @@ export default function Home() {
       <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="lg">
         <ImageCard
           title="Varaa vierailusi"
-          description="Merkitse oleskelusi kalenteriin ja varmista, että mökki on valmiina sinua varten."
+          description="Merkitse oleskelusi kalenteriin ja kerro muille milloin olet menossa mökille."
           image={imageConfig.sections.outdoors}
           href="/calendar"
           buttonText="Siirry kalenteriin"
@@ -37,7 +37,7 @@ export default function Home() {
 
         <ImageCard
           title="Saapumisohje"
-          description="Ajo-ohjeet, pysäköinti ja avainten nouto sujuvaan asettumiseen."
+          description="Tulossa mökille? Katso ohjeet saapumiseen ja mökin valmisteluun."
           image={imageConfig.sections.arrival}
           href="/arrival"
           buttonText="Katso ohje"
