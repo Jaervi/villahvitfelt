@@ -88,9 +88,11 @@ export default function SignupPage() {
       <Title ta="center" fw={800}>Luo uusi tunnus</Title>
       <Text c="dimmed" size="sm" ta="center" mt={5}>
         Onko sinulla jo tunnus?{' '}
-        <Anchor component={Link} href="/login" size="sm" fw={700} c="forestGreen">
-          Kirjaudu sisään
-        </Anchor>
+        <Link href="/login" style={{ textDecoration: 'none' }}>
+          <Anchor size="sm" fw={700} c="forestGreen">
+            Kirjaudu sisään
+          </Anchor>
+        </Link>
       </Text>
 
       <Paper withBorder shadow="md" p={30} mt={30} radius="md">

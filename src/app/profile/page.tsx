@@ -90,8 +90,7 @@ export default function ProfilePage() {
       <Stack gap="xl">
         <Group justify="space-between">
           <Button
-            component={Link}
-            href="/"
+            onClick={() => router.push("/")}
             variant="subtle"
             color="forestGreen"
             leftSection={<IconArrowLeft size={18} />}

@@ -1,7 +1,7 @@
 'use client';
 
 import { Card, Overlay, Text, Title, Stack, Button, Box } from '@mantine/core';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import React from 'react';
 
 interface ImageCardProps {
@@ -15,6 +15,8 @@ interface ImageCardProps {
 }
 
 export function ImageCard({ title, description, image, href, buttonText, icon, badge }: ImageCardProps) {
+  const router = useRouter();
+  
   return (
     <Card 
       shadow="sm" 
@@ -28,8 +30,10 @@ export function ImageCard({ title, description, image, href, buttonText, icon, b
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         minHeight: 280,
-        color: '#fff'
+        color: '#fff',
+        cursor: 'pointer'
       }}
+      onClick={() => router.push(href)}
     >
       <Overlay 
         gradient="linear-gradient(180deg, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, .7) 100%)" 
@@ -50,8 +54,6 @@ export function ImageCard({ title, description, image, href, buttonText, icon, b
         </Text>
         
         <Button 
-          component={Link}
-          href={href}
           variant="white" 
           color="dark" 
           mt="auto" 

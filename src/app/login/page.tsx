@@ -86,9 +86,11 @@ export default function LoginPage() {
       <Title ta="center" fw={800}>Tervetuloa takaisin</Title>
       <Text c="dimmed" size="sm" ta="center" mt={5}>
         Eikö sinulla ole vielä tunnusta?{' '}
-        <Anchor component={Link} href="/signup" size="sm" fw={700} c="forestGreen">
-          Luo tunnus
-        </Anchor>
+        <Link href="/signup" style={{ textDecoration: 'none' }}>
+          <Anchor size="sm" fw={700} c="forestGreen">
+            Luo tunnus
+          </Anchor>
+        </Link>
       </Text>
 
       <Paper withBorder shadow="md" p={30} mt={30} radius="md">

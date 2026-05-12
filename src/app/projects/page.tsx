@@ -28,7 +28,7 @@ import {
 } from "@tabler/icons-react";
 import { getProjects, createProject, updateProject, updateProjectStatus } from "@/lib/actions/projects";
 import { notifications } from "@mantine/notifications";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 
@@ -43,6 +43,7 @@ interface Project {
 }
 
 export default function ProjectsPage() {
+  const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
   const [createModalOpened, setCreateModalOpened] = useState(false);
@@ -214,8 +215,7 @@ export default function ProjectsPage() {
                                 padding="md" 
                                 radius="md" 
                                 withBorder 
-                                component={Link} 
-                                href={`/projects/${p.id}`}
+                                onClick={() => router.push(`/projects/${p.id}`)}
                                 style={{ 
                                   ...provided.draggableProps.style,
                                   transition: "transform 0.1s ease, box-shadow 0.1s ease",

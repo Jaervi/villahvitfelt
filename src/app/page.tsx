@@ -1,7 +1,7 @@
 "use client";
 
 import { Title, Text, Stack, SimpleGrid, Badge, Box } from '@mantine/core';
-import { IconMap, IconBook2, IconRipple } from '@tabler/icons-react';
+import { IconMap, IconBook2, IconRipple, IconCalendar } from '@tabler/icons-react';
 import { FerryTimetable } from '@/components/FerryTimetable';
 import { ParallaxBanner } from '@/components/ParallaxBanner';
 import { ImageCard } from '@/components/ImageCard';
@@ -24,7 +24,17 @@ export default function Home() {
         </Stack>
       </HeroCarousel>
 
-      <SimpleGrid cols={{ base: 1, md: 3 }} spacing="lg">
+      <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="lg">
+        <ImageCard
+          title="Varaa vierailusi"
+          description="Merkitse oleskelusi kalenteriin ja varmista, että mökki on valmiina sinua varten."
+          image={imageConfig.sections.outdoors}
+          href="/calendar"
+          buttonText="Siirry kalenteriin"
+          icon={<IconCalendar size={32} color="#fff" strokeWidth={2} />}
+          badge={<Badge color="forestGreen" variant="filled">KALENTERI</Badge>}
+        />
+
         <ImageCard
           title="Saapumisohje"
           description="Ajo-ohjeet, pysäköinti ja avainten nouto sujuvaan asettumiseen."
@@ -32,26 +42,20 @@ export default function Home() {
           href="/arrival"
           buttonText="Katso ohje"
           icon={<IconMap size={32} color="#fff" strokeWidth={2} />}
-          badge={<Badge color="forestGreen" variant="filled">Tärkeää</Badge>}
+          badge={<Badge color="forestGreen" variant="filled">SAAPUMINEN</Badge>}
         />
 
-        <ImageCard
-          title="Mökin opas"
-          description="Kaikki mitä sinun tulee tietää mökistä, aina wifistä jätehuoltoon."
-          image={imageConfig.sections.guides}
-          href="/oppaat"
-          buttonText="Lue opas"
-          icon={<IconBook2 size={32} color="#fff" strokeWidth={2} />}
-        />
-
-        <ImageCard
-          title="Sauna & Ulkoilu"
-          description="Saunan käyttö, polkujen löytäminen ja saaristosta nauttiminen."
-          image={imageConfig.sections.outdoors}
-          href="/outdoors"
-          buttonText="Tutustu"
-          icon={<IconRipple size={32} color="#fff" strokeWidth={2} />}
-        />
+        <Box display={{ base: 'none', sm: 'block' }}>
+          <ImageCard
+            title="Mökin oppaat"
+            description="Kaikki mitä sinun tulee tietää mökistä, laitteista ja huollosta."
+            image={imageConfig.sections.guides}
+            href="/oppaat"
+            buttonText="Lue oppaat"
+            icon={<IconBook2 size={32} color="#fff" strokeWidth={2} />}
+            badge={<Badge color="forestGreen" variant="filled">OPPAAT</Badge>}
+          />
+        </Box>
       </SimpleGrid>
 
       <FerryTimetable />
@@ -60,7 +64,7 @@ export default function Home() {
       <ParallaxBanner src={imageConfig.home.footer} height={300}>
         <Box ta="center">
           <Title order={2} style={{ color: '#fff' }}>Pysähdy ja nauti hetkestä.</Title>
-          <Text fw={500} style={{ color: '#fff', opacity: 0.8 }}>Villa Hvitfelt — Sinun kotisi saaristossa.</Text>
+          <Text fw={500} style={{ color: '#fff', opacity: 0.8 }}>Villa Hvitfelt — Lepopaikkasi saaristossa.</Text>
         </Box>
       </ParallaxBanner>
     </Stack>

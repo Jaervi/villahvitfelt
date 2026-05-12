@@ -2,7 +2,7 @@
 
 import { Card, Text, Button, Stack, Group, Box } from '@mantine/core';
 import { authClient } from '@/lib/auth-client';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface AuthBlockProps {
   children: React.ReactNode;
@@ -12,6 +12,7 @@ interface AuthBlockProps {
 
 export function AuthBlock({ children, title, description }: AuthBlockProps) {
   const { data: session, isPending } = authClient.useSession();
+  const router = useRouter();
 
   if (isPending) {
     return null; // Or a skeleton loader
@@ -48,8 +49,7 @@ export function AuthBlock({ children, title, description }: AuthBlockProps) {
 
         <Group mt="md">
           <Button 
-            component={Link} 
-            href="/login" 
+            onClick={() => router.push("/login")} 
             variant="filled" 
             color="forestGreen" 
             fw={700}
